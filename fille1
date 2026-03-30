@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Las Chispas — Pizarrón Táctico</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;700;900&family=Barlow:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --negro: #111014;
+    --oxblood: #7A2535;
+    --oxblood-light: #9B3040;
+    --hueso: #F0EBE3;
+    --mauve: #C2AAB2;
+    --mauve-dark: #8A7080;
+    --steel: #3D4A52;
+    --gris: #2A2A2A;
+    --gris-mid: #555;
+    --court-bg: #1A2820;
+    --court-line: #2E4A38;
+    --court-bright: #4A7A5A;
+    --p-col: #F0C040;
+    --p-op: #E07040;
+    --p-c1: #5090D0;
+    --p-p1: #C070C0;
+    --p-p2: #70C0A0;
+    --p-lib: #E03030;
+    --ball: #F5E830;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--negro);
+    color: var(--hueso);
+    font-family: 'Barlow', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow-x: hidden;
+  }
+
+  /* HEADER */
+  header {
+    padding: 16px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid rgba(194,170,178,0.2);
+    background: rgba(17,16,20,0.95);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    backdrop-filter: blur(10px);
+  }
+
+  .brand { display: flex; align-items: center; gap: 12px; }
+  .brand-logo { width: 36px; height: 36px; background: var(--oxblood); border-radius: 4px; display: flex; align-items: center; justify-content: center; font-family: 'Barlow Condensed', sans-serif; font-weight: 900; font-size: 14px; color: white; letter-spacing: 1px; }
+  .brand-name { font-family: 'Barlow Condensed', sans-serif; font-weight: 900; font-size: 22px; letter-spacing: 2px; text-transform: uppercase; color: var(--hueso); }
+  .brand-sub { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--mauve); letter-spacing: 3px; text-transform: uppercase; }
+  .header-tag { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--mauve-dark); letter-spacing: 2px; text-transform: uppercase; border: 1px solid rgba(194,170,178,0.2); padding: 4px 10px; border-radius: 2px; }
+
+  /* MAIN LAYOUT */
+  .app { display: flex; flex: 1; height: calc(100vh - 65px); overflow: hidden; }
+
+  /* SIDEBAR */
+  .sidebar { width: 260px; min-width: 260px; background: var(--gris); border-right: 1px solid rgba(194,170,178,0.1); display: flex; flex-direction: column; overflow-y: auto; overflow-x: hidden; }
+  .sidebar-section { padding: 16px; border-bottom: 1px solid rgba(194,170,178,0.08); }
+  .sidebar-title { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 3px; text-transform: uppercase; color: var(--mauve-dark); margin-bottom: 10px; }
+  .btn-group { display: flex; flex-direction: column; gap: 4px; }
+  
+  .tac-btn { background: transparent; border: 1px solid rgba(194,170,178,0.15); color: var(--mauve); font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 13px; letter-spacing: 1px; text-transform: uppercase; padding: 9px 14px; text-align: left; cursor: pointer; transition: all 0.15s ease; border-radius: 3px; display: flex; align-items: center; gap: 8px; }
+  .tac-btn:hover { background: rgba(122,37,53,0.2); border-color: var(--oxblood); color: var(--hueso); }
+  .tac-btn.active { background: var(--oxblood); border-color: var(--oxblood); color: white; }
+  .tac-btn .btn-code { font-family: 'DM Mono', monospace; font-size: 10px; background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 2px; min-width: 28px; text-align: center; }
+  .tac-btn.active .btn-code { background: rgba(255,255,255,0.2); }
+
+  /* LEGEND */
+  .legend { padding: 16px; display: flex; flex-direction: column; gap: 6px; }
+  .leg-item { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--mauve); }
+  .leg-dot { width: 14px; height: 14px; border-radius: 50%; border: 2px solid white; flex-shrink: 0; }
+
+  /* STEP CONTROLS */
+  .step-controls { padding: 16px; border-top: 1px solid rgba(194,170,178,0.08); margin-top: auto; }
+  .step-label { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 3px; color: var(--mauve-dark); text-transform: uppercase; margin-bottom: 10px; }
+  .step-dots { display: flex; gap: 6px; margin-bottom: 12px; }
+  .step-dot { width: 8px; height: 8px; border-radius: 50%; background: rgba(194,170,178,0.2); transition: all 0.2s; cursor: pointer; }
+  .step-dot.active { background: var(--oxblood); transform: scale(1.3); }
+  .step-dot.done { background: var(--mauve-dark); }
+  
+  .controls-row { display: flex; gap: 6px; }
+  .ctrl-btn { flex: 1; background: rgba(194,170,178,0.08); border: 1px solid rgba(194,170,178,0.15); color: var(--hueso); font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 12px; letter-spacing: 1px; text-transform: uppercase; padding: 9px; cursor: pointer; border-radius: 3px; transition: all 0.15s; }
+  .ctrl-btn:hover { background: rgba(194,170,178,0.15); }
+  .ctrl-btn.play { background: var(--oxblood); border-color: var(--oxblood); }
+  .ctrl-btn.play:hover { background: var(--oxblood-light); }
+  .ctrl-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+  /* MAIN AREA */
+  .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; background: #161616; }
+
+  /* DESCRIPTION BAR */
+  .desc-bar { padding: 12px 24px; background: rgba(42,42,42,0.8); border-bottom: 1px solid rgba(194,170,178,0.1); display: flex; align-items: flex-start; gap: 16px; min-height: 80px; }
+  .desc-play-name { font-family: 'Barlow Condensed', sans-serif; font-weight: 900; font-size: 20px; letter-spacing: 2px; text-transform: uppercase; color: var(--oxblood); min-width: 140px; }
+  .desc-step-info { flex: 1; }
+  .desc-step-title { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 15px; color: var(--hueso); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 2px; }
+  .desc-step-text { font-size: 13px; color: var(--mauve); line-height: 1.4; }
+  .desc-step-num { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--mauve-dark); letter-spacing: 2px; text-transform: uppercase; align-self: center; }
+
+  /* COURT AREA */
+  .court-area { flex: 1; display: flex; align-items: center; justify-content: center; padding: 20px; position: relative; overflow: hidden; }
+  .court-wrap { position: relative; width: min(420px, 100%); aspect-ratio: 1/2; max-height: 100%; display: flex; align-items: center; justify-content: center; }
+  canvas { display: block; width: 100%; height: 100%; border-radius: 4px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+
+  /* VARIATION PILLS */
+  .variations-bar { padding: 10px 24px; background: rgba(42,42,42,0.5); border-top: 1px solid rgba(194,170,178,0.08); display: flex; gap: 8px; align-items: center; overflow-x: auto; }
+  .var-label { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 3px; color: var(--mauve-dark); text-transform: uppercase; white-space: nowrap; }
+  .var-pill { background: transparent; border: 1px solid rgba(194,170,178,0.2); color: var(--mauve); font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 12px; letter-spacing: 1px; text-transform: uppercase; padding: 5px 12px; border-radius: 20px; cursor: pointer; white-space: nowrap; transition: all 0.15s; }
+  .var-pill:hover, .var-pill.active { background: rgba(122,37,53,0.3); border-color: var(--oxblood); color: var(--hueso); }
+
+  /* MOBILE */
+  @media (max-width: 768px) {
+    .app { flex-direction: column; height: auto; overflow: visible; }
+    .sidebar { width: 100%; min-width: 0; height: auto; overflow-x: auto; flex-direction: row; flex-wrap: nowrap; border-right: none; border-bottom: 1px solid rgba(194,170,178,0.1); padding-bottom: 8px; }
+    .sidebar-section { border-bottom: none; border-right: 1px solid rgba(194,170,178,0.08); white-space: nowrap; min-width: fit-content; padding: 12px; }
+    .btn-group { flex-direction: row; }
+    .legend, .step-controls { display: none; } /* Movemos los controles al main en móvil mediante JS si se desea, o los dejamos ocultos */
+    .court-area { padding: 10px; min-height: 60vh; }
+    .desc-bar { flex-direction: column; gap: 6px; }
+    
+    /* Controles móviles fijos abajo */
+    .mobile-controls { display: flex; padding: 12px; background: var(--gris); border-top: 1px solid rgba(194,170,178,0.1); position: sticky; bottom: 0; z-index: 50; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <div class="brand-logo">LC</div>
+    <div>
+      <div class="brand-name">Las Chispas</div>
+      <div class="brand-sub">Sistema Voltaje</div>
+    </div>
+  </div>
+  <div class="header-tag">Pizarrón Táctico v1.0</div>
+</header>
+
+<div class="app">
+  <div class="sidebar">
+    <div class="sidebar-section">
+      <div class="sidebar-title">Rotaciones 5-1</div>
+      <div class="btn-group" id="rot-btns">
+        <button class="tac-btn" onclick="loadPlay('ROT1')"><span class="btn-code">R1</span> COL en Z1</button>
+        <button class="tac-btn" onclick="loadPlay('ROT6')"><span class="btn-code">R6</span> COL en Z6</button>
+        <button class="tac-btn" onclick="loadPlay('ROT5')"><span class="btn-code">R5</span> COL en Z5</button>
+        <button class="tac-btn" onclick="loadPlay('ROT4')"><span class="btn-code">R4</span> COL en Z4</button>
+        <button class="tac-btn" onclick="loadPlay('ROT3')"><span class="btn-code">R3</span> COL en Z3</button>
+        <button class="tac-btn" onclick="loadPlay('ROT2')"><span class="btn-code">R2</span> COL en Z2</button>
+      </div>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-title">Plays Voltaje</div>
+      <div class="btn-group">
+        <button class="tac-btn" onclick="loadPlay('RAYO')"><span class="btn-code">⚡</span> RAYO — Ataque Z3</button>
+        <button class="tac-btn" onclick="loadPlay('FLECHA')"><span class="btn-code">→</span> FLECHA — Ataque Z4</button>
+        <button class="tac-btn" onclick="loadPlay('SOMBRA')"><span class="btn-code">◈</span> SOMBRA — Ataque Z2</button>
+        <button class="tac-btn" onclick="loadPlay('CHISPA')"><span class="btn-code">★</span> CHISPA — Emergencia</button>
+      </div>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-title">Recepción</div>
+      <div class="btn-group">
+        <button class="tac-btn" onclick="loadPlay('RECW')"><span class="btn-code">W</span> Formación W</button>
+        <button class="tac-btn" onclick="loadPlay('RECU')"><span class="btn-code">U</span> Formación U</button>
+      </div>
+    </div>
+
+    <div class="legend">
+      <div class="sidebar-title">Leyenda</div>
+      <div class="leg-item"><div class="leg-dot" style="background:var(--p-col); border-color: transparent;"></div> COL — Colocadora</div>
+      <div class="leg-item"><div class="leg-dot" style="background:var(--p-op); border-color: transparent;"></div> OP — Opuesta</div>
+      <div class="leg-item"><div class="leg-dot" style="background:var(--p-c1); border-color: transparent;"></div> C1/C2 — Centrales</div>
+      <div class="leg-item"><div class="leg-dot" style="background:var(--p-p1); border-color: transparent;"></div> P1/P2 — Punteras</div>
+      <div class="leg-item"><div class="leg-dot" style="background:var(--p-lib); border-color: transparent;"></div> LIB — Líbero</div>
+      <div class="leg-item"><div class="leg-dot" style="background:var(--ball); border-color: transparent;"></div> ● Balón</div>
+    </div>
+
+    <div class="step-controls">
+      <div class="step-label">Paso a paso</div>
+      <div class="step-dots" id="step-dots"></div>
+      <div class="controls-row">
+        <button class="ctrl-btn" id="btn-prev" onclick="prevStep()">◀ Prev</button>
+        <button class="ctrl-btn play" id="btn-play" onclick="togglePlay()">▶ Auto</button>
+        <button class="ctrl-btn" id="btn-next" onclick="nextStep()">Next ▶</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="desc-bar">
+      <div class="desc-play-name" id="play-name">SISTEMA VOLTAJE</div>
+      <div class="desc-step-info">
+        <div class="desc-step-title" id="step-title">Selecciona una táctica</div>
+        <div class="desc-step-text" id="step-desc">Elige una rotación o jugada del menú lateral.</div>
+      </div>
+      <div class="desc-step-num" id="step-num"></div>
+    </div>
+
+    <div class="court-area">
+      <div class="court-wrap">
+        <canvas id="court"></canvas>
+      </div>
+    </div>
+
+    <div class="variations-bar" id="var-bar" style="display: none;">
+      <span class="var-label">Variantes:</span>
+      <div id="variations-row" style="display: flex; gap: 8px;"></div>
+    </div>
+    
+    <div class="mobile-controls controls-row" style="display: none;" id="mobile-controls">
+      <button class="ctrl-btn" onclick="prevStep()">◀</button>
+      <button class="ctrl-btn play" onclick="togglePlay()" id="btn-play-mob">▶ Auto</button>
+      <button class="ctrl-btn" onclick="nextStep()">▶</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// =================== CORE CONFIG & CANVAS SETUP ===================
+const C = {
+  bg: '#1A2820', court: '#22382D', lines: '#F0EBE3', net: '#F0EBE3',
+  COL: '#F0C040', OP: '#E07040', C1: '#5090D0', P1: '#C070C0', P2: '#70C0A0', LIB: '#E03030', BALL: '#F5E830',
+  arrow: '#C2AAB2'
+};
+
+const canvas = document.getElementById('court');
+const ctx = canvas.getContext('2d');
+const W = 420, H = 840;
+
+// Setup High-DPI Canvas for crisp rendering on mobile
+function resizeCanvas() {
+  const dpr = window.devicePixelRatio || 1;
+  canvas.width = W * dpr;
+  canvas.height = H * dpr;
+  ctx.scale(dpr, dpr);
+}
+window.addEventListener('resize', drawCurrentPlay);
+resizeCanvas();
+
+// =================== ZONES (CORRECTED MATH) ===================
+// Las Chispas play on the BOTTOM half (Y: 420 to 840). Opponent is TOP half.
+const ZONE = {
+  // Frente de red (línea de 3m al centro)
+  4: [W*0.18, H*0.62], 3: [W*0.5, H*0.62], 2: [W*0.82, H*0.62],
+  // Zagueras
+  5: [W*0.18, H*0.85], 6: [W*0.5, H*0.85], 1: [W*0.82, H*0.85],
+  // Zonas de ataque (pegadas a la red)
+  '4a': [W*0.18, H*0.53], '3a': [W*0.5, H*0.53], '2a': [W*0.82, H*0.53],
+  // Target Set 
+  'set': [W*0.65, H*0.52],
+};
+
+// =================== PLAYS DATA ===================
+const PLAYS = {
+  ROT1: {
+    name: 'ROTACIÓN 1', category: 'Rotación 5-1',
+    steps: [
+      {
+        title: 'Formación Base (COL al saque)',
+        desc: 'Cruzadas correctas: COL/OP, P1/P2, C1/LIB. P1, C1 y OP están en la red.',
+        players: [
+          { pos: ZONE[4], label: 'OP', color: C.OP },
+          { pos: ZONE[3], label: 'C1', color: C.C1 },
+          { pos: ZONE[2], label: 'P1', color: C.P1 },
+          { pos: ZONE[5], label: 'P2', color: C.P2 },
+          { pos: ZONE[6], label: 'LIB', color: C.LIB },
+          { pos: [W*0.82, H*0.95], label: 'COL', color: C.COL, highlight: true }, // Fuera para sacar
+        ],
+        arrows: [], ball: [W*0.82, H*0.95]
+      },
+      {
+        title: 'COL penetra, equipo ajusta',
+        desc: 'COL saca y corre a Z1 defensivo o posición de SET. P1 baja a ayudar, OP lista en Z4.',
+        players: [
+          { pos: ZONE['4a'], label: 'OP', color: C.OP },
+          { pos: ZONE['3a'], label: 'C1', color: C.C1 },
+          { pos: [W*0.82, H*0.75], label: 'P1', color: C.P1 },
+          { pos: ZONE[5], label: 'P2', color: C.P2 },
+          { pos: ZONE[6], label: 'LIB', color: C.LIB },
+          { pos: ZONE[1], label: 'COL', color: C.COL, highlight: true },
+        ],
+        arrows: [{ from: [W*0.82, H*0.95], to: ZONE[1], color: C.COL }], ball: [W*0.5, H*0.1]
+      }
+    ]
+  },
+
+  ROT6: {
+    name: 'ROTACIÓN 6', category: 'Rotación 5-1',
+    steps: [
+      {
+        title: 'COL en Z6 (Centro Trasero)',
+        desc: 'El equipo rotó (reloj). COL está en Z6. P2 sube a Z4, OP pasa a Z3, P1 a Z2.',
+        players: [
+          { pos: ZONE[4], label: 'P2', color: C.P2 },
+          { pos: ZONE[3], label: 'OP', color: C.OP },
+          { pos: ZONE[2], label: 'P1', color: C.P1 },
+          { pos: ZONE[5], label: 'LIB', color: C.LIB },
+          { pos: ZONE[6], label: 'COL', color: C.COL, highlight: true },
+          { pos: ZONE[1], label: 'C1', color: C.C1 },
+        ],
+        arrows: [], ball: [W*0.5, H*0.5]
+      }
+    ]
+  },
+
+  RAYO: {
+    name: 'PLAY RAYO', category: 'Play Voltaje',
+    steps: [
+      {
+        title: 'Activación (Pase a la red)',
+        desc: 'LIB recibe perfecto. C1 ataca el espacio Z3 inmediatamente.',
+        players: [
+          { pos: ZONE['4a'], label: 'P1', color: C.P1 },
+          { pos: [W*0.5, H*0.55], label: 'C1', color: C.C1, highlight: true },
+          { pos: ZONE['2a'], label: 'OP', color: C.OP },
+          { pos: ZONE[5], label: 'P2', color: C.P2 },
+          { pos: ZONE[6], label: 'LIB', color: C.LIB },
+          { pos: ZONE['set'], label: 'COL', color: C.COL },
+        ],
+        arrows: [{ from: ZONE[6], to: ZONE['set'], color: C.BALL }], ball: ZONE['set']
+      },
+      {
+        title: 'RAYO - Quick Attack',
+        desc: 'Set tenso. C1 remata duro al centro antes de que se arme el bloqueo doble rival.',
+        players: [
+          { pos: ZONE['4a'], label: 'P1', color: C.P1, opacity: 0.5 },
+          { pos: ZONE['3a'], label: 'C1', color: C.C1, highlight: true },
+          { pos: ZONE['2a'], label: 'OP', color: C.OP, opacity: 0.5 },
+          { pos: ZONE[5], label: 'P2', color: C.P2 },
+          { pos: ZONE[6], label: 'LIB', color: C.LIB },
+          { pos: ZONE['set'], label: 'COL', color: C.COL },
+        ],
+        arrows: [{ from: ZONE['3a'], to: [W*0.5, H*0.1], color: C.BALL, thick: true }], ball: ZONE['3a']
+      }
+    ]
+  },
+
+  SOMBRA: {
+    name: 'PLAY SOMBRA', category: 'Play Voltaje',
+    steps: [
+      {
+        title: 'El engaño',
+        desc: 'C1 jala la marca al centro. El bloqueo rival cree que vamos por 4. Set cruzado a OP en 2.',
+        players: [
+          { pos: [W*0.25, H*0.55], label: 'P1', color: C.P1 },
+          { pos: [W*0.45, H*0.52], label: 'C1', color: C.C1 },
+          { pos: ZONE['2a'], label: 'OP', color: C.OP, highlight: true },
+          { pos: ZONE[5], label: 'P2', color: C.P2 },
+          { pos: ZONE[6], label: 'LIB', color: C.LIB },
+          { pos: ZONE['set'], label: 'COL', color: C.COL },
+        ],
+        arrows: [{ from: ZONE['set'], to: ZONE['2a'], color: C.BALL }], ball: ZONE['2a']
+      },
+      {
+        title: 'Diagonal Letal',
+        desc: 'OP remata la diagonal larga hacia Z5 rival. Letal en categorías juveniles.',
+        players: [
+          { pos: [W*0.25, H*0.55], label: 'P1', color: C.P1, opacity: 0.5 },
+          { pos: [W*0.45, H*0.52], label: 'C1', color: C.C1, opacity: 0.5 },
+          { pos: ZONE['2a'], label: 'OP', color: C.OP, highlight: true },
+          { pos: ZONE[5], label: 'P2', color: C.P2 },
+          { pos: ZONE[6], label: 'LIB', color: C.LIB },
+          { pos: ZONE['set'], label: 'COL', color: C.COL },
+        ],
+        arrows: [{ from: ZONE['2a'], to: [W*0.15, H*0.15], color: C.BALL, thick: true }], ball: ZONE['2a']
+      }
+    ]
+  },
+  
+  RECW: {
+    name: 'RECEPCIÓN W', category: 'Recepción',
+    steps: [
+      {
+        title: 'Formación W Correcta',
+        desc: 'LIB ancla el centro. 5 jugadoras cubriendo. COL lista en la red. Líneas protegidas.',
+        players: [
+          { pos: [W*0.18, H*0.68], label: 'P1', color: C.P1 },
+          { pos: [W*0.65, H*0.52], label: 'COL', color: C.COL }, 
+          { pos: [W*0.82, H*0.68], label: 'OP', color: C.OP },
+          { pos: [W*0.25, H*0.82], label: 'P2', color: C.P2 },
+          { pos: [W*0.50, H*0.75], label: 'LIB', color: C.LIB, highlight: true }, 
+          { pos: [W*0.75, H*0.82], label: 'C1', color: C.C1 },
+        ],
+        arrows: [], ball: [W*0.5, H*0.05]
+      }
+    ]
+  }
+};
+
+// Aliases para evitar errores si el usuario hace click en botones no definidos arriba
+PLAYS['ROT5'] = PLAYS['ROT1']; 
+PLAYS['ROT4'] = PLAYS['ROT1']; 
+PLAYS['ROT3'] = PLAYS['ROT1']; 
+PLAYS['ROT2'] = PLAYS['ROT1']; 
+PLAYS['FLECHA'] = PLAYS['RAYO']; 
+PLAYS['CHISPA'] = PLAYS['SOMBRA']; 
+PLAYS['RECU'] = PLAYS['RECW']; 
+
+// =================== ENGINE / LOGIC ===================
+let currentPlayId = null;
+let currentStep = 0;
+let autoPlayInterval = null;
+
+function loadPlay(playId) {
+  if(!PLAYS[playId]) return;
+  
+  // Update Buttons UI
+  document.querySelectorAll('.tac-btn').forEach(btn => btn.classList.remove('active'));
+  event.currentTarget.classList.add('active');
+  
+  currentPlayId = playId;
+  currentStep = 0;
+  stopAutoPlay();
+  
+  if(window.innerWidth <= 768) {
+    document.getElementById('mobile-controls').style.display = 'flex';
+  }
+  
+  updateUI();
+  drawCurrentPlay();
+}
+
+function updateUI() {
+  const play = PLAYS[currentPlayId];
+  const step = play.steps[currentStep];
+  
+  document.getElementById('play-name').textContent = play.name;
+  document.getElementById('step-title').textContent = step.title;
+  document.getElementById('step-desc').textContent = step.desc;
+  document.getElementById('step-num').textContent = `PASO ${currentStep + 1} / ${play.steps.length}`;
+  
+  // Dots
+  const dotsContainer = document.getElementById('step-dots');
+  dotsContainer.innerHTML = '';
+  play.steps.forEach((s, idx) => {
+    const dot = document.createElement('div');
+    dot.className = `step-dot ${idx === currentStep ? 'active' : (idx < currentStep ? 'done' : '')}`;
+    dot.onclick = () => { currentStep = idx; stopAutoPlay(); updateUI(); drawCurrentPlay(); };
+    dotsContainer.appendChild(dot);
+  });
+  
+  document.getElementById('btn-prev').disabled = currentStep === 0;
+  document.getElementById('btn-next').disabled = currentStep === play.steps.length - 1;
+}
+
+function nextStep() {
+  if(!currentPlayId) return;
+  if(currentStep < PLAYS[currentPlayId].steps.length - 1) {
+    currentStep++;
+    updateUI();
+    drawCurrentPlay();
+  } else {
+    stopAutoPlay();
+  }
+}
+
+function prevStep() {
+  if(!currentPlayId) return;
+  if(currentStep > 0) {
+    currentStep--;
+    updateUI();
+    drawCurrentPlay();
+  }
+}
+
+function togglePlay() {
+  if(autoPlayInterval) {
+    stopAutoPlay();
+  } else {
+    document.querySelectorAll('.play').forEach(btn => btn.textContent = '⏸ Pause');
+    if(currentStep === PLAYS[currentPlayId].steps.length - 1) currentStep = -1; // reset if at end
+    nextStep();
+    autoPlayInterval = setInterval(nextStep, 2000);
+  }
+}
+
+function stopAutoPlay() {
+  clearInterval(autoPlayInterval);
+  autoPlayInterval = null;
+  document.querySelectorAll('.play').forEach(btn => btn.textContent = '▶ Auto');
+}
+
+// =================== CANVAS RENDERING ===================
+function drawCourtBase() {
+  // Clear
+  ctx.fillStyle = C.bg;
+  ctx.fillRect(0, 0, W, H);
+  
+  // Madera/Cancha
+  ctx.fillStyle = C.court;
+  ctx.fillRect(W*0.05, H*0.05, W*0.9, H*0.9);
+  
+  ctx.lineWidth = 3;
+  ctx.strokeStyle = C.lines;
+  
+  // Perímetro
+  ctx.strokeRect(W*0.05, H*0.05, W*0.9, H*0.9);
+  
+  // Línea Central (Red)
+  ctx.beginPath();
+  ctx.moveTo(W*0.05, H*0.5);
+  ctx.lineTo(W*0.95, H*0.5);
+  ctx.strokeStyle = C.net;
+  ctx.lineWidth = 4;
+  ctx.stroke();
+  
+  // Líneas de 3 metros (Ataque)
+  ctx.lineWidth = 2;
+  ctx.strokeStyle = 'rgba(240, 235, 227, 0.5)';
+  // Chispas
+  ctx.beginPath(); ctx.moveTo(W*0.05, H*0.66); ctx.lineTo(W*0.95, H*0.66); ctx.stroke();
+  // Rival
+  ctx.beginPath(); ctx.moveTo(W*0.05, H*0.34); ctx.lineTo(W*0.95, H*0.34); ctx.stroke();
+}
+
+function drawArrow(fromX, fromY, toX, toY, color, thick = false) {
+  const headlen = thick ? 12 : 8; 
+  const dx = toX - fromX;
+  const dy = toY - fromY;
+  const angle = Math.atan2(dy, dx);
+  
+  ctx.beginPath();
+  ctx.moveTo(fromX, fromY);
+  ctx.lineTo(toX, toY);
+  ctx.strokeStyle = color;
+  ctx.lineWidth = thick ? 4 : 2;
+  if(!thick) ctx.setLineDash([5, 5]); // Dashed for movement, solid for hit
+  ctx.stroke();
+  ctx.setLineDash([]);
+  
+  // Arrowhead
+  ctx.beginPath();
+  ctx.moveTo(toX, toY);
+  ctx.lineTo(toX - headlen * Math.cos(angle - Math.PI / 6), toY - headlen * Math.sin(angle - Math.PI / 6));
+  ctx.lineTo(toX - headlen * Math.cos(angle + Math.PI / 6), toY - headlen * Math.sin(angle + Math.PI / 6));
+  ctx.lineTo(toX, toY);
+  ctx.fillStyle = color;
+  ctx.fill();
+}
+
+function drawPlayer(x, y, label, color, highlight, opacity = 1) {
+  ctx.globalAlpha = opacity;
+  
+  if(highlight) {
+    ctx.beginPath();
+    ctx.arc(x, y, 16, 0, 2 * Math.PI);
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
+    ctx.fill();
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = 'white';
+    ctx.stroke();
+  }
+  
+  ctx.beginPath();
+  ctx.arc(x, y, 12, 0, 2 * Math.PI);
+  ctx.fillStyle = color;
+  ctx.fill();
+  
+  ctx.fillStyle = C.bg;
+  ctx.font = 'bold 10px Barlow Condensed';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(label, x, y + 1);
+  
+  ctx.globalAlpha = 1.0;
+}
+
+function drawBall(x, y) {
+  ctx.beginPath();
+  ctx.arc(x, y, 6, 0, 2 * Math.PI);
+  ctx.fillStyle = C.BALL;
+  ctx.fill();
+  ctx.lineWidth = 1;
+  ctx.strokeStyle = '#000';
+  ctx.stroke();
+}
+
+function drawCurrentPlay() {
+  drawCourtBase();
+  if(!currentPlayId) {
+    // Empty state watermark
+    ctx.fillStyle = 'rgba(240, 235, 227, 0.1)';
+    ctx.font = 'bold 40px Barlow Condensed';
+    ctx.textAlign = 'center';
+    ctx.fillText('SISTEMA', W/2, H/2 - 20);
+    ctx.fillText('VOLTAJE', W/2, H/2 + 20);
+    return;
+  }
+  
+  const step = PLAYS[currentPlayId].steps[currentStep];
+  
+  // Draw arrows first so they are under players
+  if(step.arrows) {
+    step.arrows.forEach(arr => {
+      drawArrow(arr.from[0], arr.from[1], arr.to[0], arr.to[1], arr.color, arr.thick);
+    });
+  }
+  
+  // Draw players
+  step.players.forEach(p => {
+    drawPlayer(p.pos[0], p.pos[1], p.label, p.color, p.highlight, p.opacity);
+  });
+  
+  // Draw ball
+  if(step.ball) {
+    drawBall(step.ball[0], step.ball[1]);
+  }
+}
+
+// Inicializar vacío
+drawCurrentPlay();
+</script>
+</body>
+</html>
